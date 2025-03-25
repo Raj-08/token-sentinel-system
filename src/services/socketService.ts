@@ -1,4 +1,3 @@
-
 import { io, Socket } from "socket.io-client";
 import { toast } from "sonner";
 
@@ -23,6 +22,12 @@ export interface Token {
   topTradersBuying: number;
   marketCapSol?: number;
   bondingCurveKey?: string;
+  solAmount?: number;
+  initialBuy?: number;
+  uri?: string;
+  pool?: string;
+  vSolInBondingCurve?: number;
+  vTokensInBondingCurve?: number;
 }
 
 export interface Trade {
@@ -38,7 +43,6 @@ export interface Trade {
   signature?: string;
 }
 
-// Sample data for development
 const exampleTokens = [
   {
     address: "D1MfDgLMg1gV3Vjs2tR1yvY3LP2Aw9HWfHsX8ndapump",
@@ -209,7 +213,13 @@ class SocketService {
       trades: 0,
       topTradersBuying: 0,
       marketCapSol: tokenData.marketCapSol,
-      bondingCurveKey: tokenData.bondingCurveKey
+      bondingCurveKey: tokenData.bondingCurveKey,
+      solAmount: tokenData.solAmount,
+      initialBuy: tokenData.initialBuy,
+      uri: tokenData.uri,
+      pool: tokenData.pool,
+      vSolInBondingCurve: tokenData.vSolInBondingCurve,
+      vTokensInBondingCurve: tokenData.vTokensInBondingCurve
     };
     
     // Process the token
@@ -287,7 +297,13 @@ class SocketService {
       trades: 0,
       topTradersBuying: 0,
       marketCapSol: data.marketCapSol,
-      bondingCurveKey: data.bondingCurveKey
+      bondingCurveKey: data.bondingCurveKey,
+      solAmount: data.solAmount,
+      initialBuy: data.initialBuy,
+      uri: data.uri,
+      pool: data.pool,
+      vSolInBondingCurve: data.vSolInBondingCurve,
+      vTokensInBondingCurve: data.vTokensInBondingCurve
     };
     
     this.tokens.unshift(token);
@@ -384,7 +400,13 @@ class SocketService {
           trades: Math.floor(Math.random() * 10),
           topTradersBuying: Math.floor(Math.random() * 3),
           marketCapSol: tokenData.marketCapSol,
-          bondingCurveKey: tokenData.bondingCurveKey
+          bondingCurveKey: tokenData.bondingCurveKey,
+          solAmount: tokenData.solAmount,
+          initialBuy: tokenData.initialBuy,
+          uri: tokenData.uri,
+          pool: tokenData.pool,
+          vSolInBondingCurve: tokenData.vSolInBondingCurve,
+          vTokensInBondingCurve: tokenData.vTokensInBondingCurve
         });
       }, 1000 + index * 500);
     });
