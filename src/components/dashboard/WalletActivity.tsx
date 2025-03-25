@@ -1,72 +1,33 @@
-import React from "react";
+
+import React, { useEffect } from "react";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { ScrollArea } from "@/components/ui/scroll-area";
 import { ArrowUpRight, ArrowUp, ArrowDown } from "lucide-react";
 import { cn } from "@/lib/utils";
-
-// Mock data for demonstration purposes
-const mockTrades = [
-  {
-    id: "1",
-    wallet: "AArPXm8JatJiuyEffuC1un2Sc835SULa4uQqDcaGpAjV",
-    walletName: "Alpha Whale",
-    tokenName: "TrenchFighter",
-    tokenSymbol: "TFIGHT",
-    action: "buy" as const,
-    amount: 2500000,
-    timestamp: new Date().getTime() - 1000 * 60 * 5, // 5 minutes ago
-    value: 4280,
-  },
-  {
-    id: "2",
-    wallet: "BQrPXm8JatJiuyEffuC1un2Sc835SULa4uQqDcaGpAjV",
-    walletName: "DeFi Degen",
-    tokenName: "SnipeToken",
-    tokenSymbol: "SNIPE",
-    action: "sell" as const,
-    amount: 1200000,
-    timestamp: new Date().getTime() - 1000 * 60 * 12, // 12 minutes ago
-    value: 1980,
-  },
-  {
-    id: "3",
-    wallet: "CRrPXm8JatJiuyEffuC1un2Sc835SULa4uQqDcaGpAjV",
-    walletName: "Smart Money",
-    tokenName: "PumpDetector",
-    tokenSymbol: "PUMP",
-    action: "buy" as const,
-    amount: 4800000,
-    timestamp: new Date().getTime() - 1000 * 60 * 18, // 18 minutes ago
-    value: 7450,
-  },
-  {
-    id: "4",
-    wallet: "DRrPXm8JatJiuyEffuC1un2Sc835SULa4uQqDcaGpAjV",
-    walletName: "Blue Chip Investor",
-    tokenName: "AlphaFinder",
-    tokenSymbol: "ALPHA",
-    action: "buy" as const,
-    amount: 950000,
-    timestamp: new Date().getTime() - 1000 * 60 * 23, // 23 minutes ago
-    value: 1820,
-  },
-  {
-    id: "5",
-    wallet: "ERrPXm8JatJiuyEffuC1un2Sc835SULa4uQqDcaGpAjV",
-    walletName: "Early Adopter",
-    tokenName: "GemHunter",
-    tokenSymbol: "GEM",
-    action: "sell" as const,
-    amount: 3200000,
-    timestamp: new Date().getTime() - 1000 * 60 * 35, // 35 minutes ago
-    value: 5340,
-  },
-];
+import socketService, { Trade } from "@/services/socketService";
 
 export function WalletActivity() {
-  const [trades, setTrades] = React.useState(mockTrades);
+  const [trades, setTrades] = React.useState<Trade[]>([]);
   const [currentTime, setCurrentTime] = React.useState(new Date().getTime());
+
+  // Connect to socket service when component mounts
+  useEffect(() => {
+    // Initial data
+    setTrades(socketService.getTrades());
+    
+    // Listen for updates
+    const handleTradesUpdate = (newTrades: Trade[]) => {
+      setTrades(newTrades);
+    };
+    
+    socketService.addEventListener("tradesUpdate", handleTradesUpdate);
+    
+    // Clean up
+    return () => {
+      socketService.removeEventListener("tradesUpdate", handleTradesUpdate);
+    };
+  }, []);
 
   // Update current time every second to refresh relative timestamps
   React.useEffect(() => {
@@ -87,9 +48,15 @@ export function WalletActivity() {
       <CardContent>
         <ScrollArea className="h-[320px] pr-4">
           <div className="space-y-4">
-            {trades.map((trade) => (
-              <TradeCard key={trade.id} trade={trade} currentTime={currentTime} />
-            ))}
+            {trades.length > 0 ? (
+              trades.map((trade) => (
+                <TradeCard key={trade.id} trade={trade} currentTime={currentTime} />
+              ))
+            ) : (
+              <div className="text-center py-8 text-muted-foreground">
+                Waiting for wallet activity...
+              </div>
+            )}
           </div>
         </ScrollArea>
       </CardContent>
@@ -98,23 +65,15 @@ export function WalletActivity() {
 }
 
 interface TradeCardProps {
-  trade: {
-    id: string;
-    wallet: string;
-    walletName: string;
-    tokenName: string;
-    tokenSymbol: string;
-    action: "buy" | "sell";
-    amount: number;
-    value: number;
-    timestamp: number;
-  };
+  trade: Trade;
   currentTime: number;
 }
 
 function TradeCard({ trade, currentTime }: TradeCardProps) {
   const timeAgo = getTimeAgo(trade.timestamp, currentTime);
-  const truncatedWallet = `${trade.wallet.substring(0, 4)}...${trade.wallet.substring(trade.wallet.length - 4)}`;
+  const truncatedWallet = trade.wallet ? 
+    `${trade.wallet.substring(0, 4)}...${trade.wallet.substring(trade.wallet.length - 4)}` : 
+    "Unknown";
   
   return (
     <div className={cn(
@@ -125,7 +84,7 @@ function TradeCard({ trade, currentTime }: TradeCardProps) {
       <div className="flex items-start justify-between">
         <div>
           <div className="flex items-center gap-2">
-            <h3 className="font-medium">{trade.walletName}</h3>
+            <h3 className="font-medium">{trade.walletName || "Top Wallet"}</h3>
             <Badge 
               variant="secondary" 
               className={cn(

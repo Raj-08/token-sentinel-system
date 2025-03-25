@@ -1,65 +1,33 @@
-import React from "react";
+
+import React, { useEffect } from "react";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { ScrollArea } from "@/components/ui/scroll-area";
 import { Bell, Wallet, Zap, ArrowRight, Timer } from "lucide-react";
 import { cn } from "@/lib/utils";
-
-// Mock data for demonstration
-const mockAlerts = [
-  {
-    id: "1",
-    type: "top_trader_buy",
-    title: "Top Trader Buy",
-    description: "Alpha Whale bought 2.5M TFIGHT",
-    timestamp: new Date().getTime() - 1000 * 60 * 2, // 2 minutes ago
-    priority: "high" as const,
-  },
-  {
-    id: "2",
-    type: "new_token",
-    title: "New Token Launch",
-    description: "TrenchFighter (TFIGHT) launched by watched creator",
-    timestamp: new Date().getTime() - 1000 * 60 * 10, // 10 minutes ago
-    priority: "medium" as const,
-  },
-  {
-    id: "3",
-    type: "wallet_movement",
-    title: "Wallet Movement",
-    description: "Smart Money wallet active after 2 weeks",
-    timestamp: new Date().getTime() - 1000 * 60 * 15, // 15 minutes ago
-    priority: "medium" as const,
-  },
-  {
-    id: "4",
-    type: "top_trader_buy",
-    title: "Top Trader Buy",
-    description: "Blue Chip Investor bought 950K ALPHA",
-    timestamp: new Date().getTime() - 1000 * 60 * 23, // 23 minutes ago
-    priority: "high" as const,
-  },
-  {
-    id: "5",
-    type: "volume_spike",
-    title: "Volume Spike",
-    description: "PUMP volume increased 320% in 5 minutes",
-    timestamp: new Date().getTime() - 1000 * 60 * 28, // 28 minutes ago
-    priority: "medium" as const,
-  },
-  {
-    id: "6",
-    type: "new_token",
-    title: "New Token Launch",
-    description: "SnipeToken (SNIPE) launched",
-    timestamp: new Date().getTime() - 1000 * 60 * 35, // 35 minutes ago
-    priority: "low" as const,
-  },
-];
+import socketService, { Alert } from "@/services/socketService";
 
 export function AlertFeed() {
-  const [alerts, setAlerts] = React.useState(mockAlerts);
+  const [alerts, setAlerts] = React.useState<Alert[]>([]);
   const [currentTime, setCurrentTime] = React.useState(new Date().getTime());
+
+  // Connect to socket service when component mounts
+  useEffect(() => {
+    // Initial data
+    setAlerts(socketService.getAlerts());
+    
+    // Listen for updates
+    const handleAlertsUpdate = (newAlerts: Alert[]) => {
+      setAlerts(newAlerts);
+    };
+    
+    socketService.addEventListener("alertsUpdate", handleAlertsUpdate);
+    
+    // Clean up
+    return () => {
+      socketService.removeEventListener("alertsUpdate", handleAlertsUpdate);
+    };
+  }, []);
 
   // Update current time every second to refresh relative timestamps
   React.useEffect(() => {
@@ -91,14 +59,7 @@ export function AlertFeed() {
 }
 
 interface AlertCardProps {
-  alert: {
-    id: string;
-    type: string;
-    title: string;
-    description: string;
-    timestamp: number;
-    priority: "high" | "medium" | "low";
-  };
+  alert: Alert;
   currentTime: number;
 }
 

@@ -5,69 +5,29 @@ import { Badge } from "@/components/ui/badge";
 import { ScrollArea } from "@/components/ui/scroll-area";
 import { cn } from "@/lib/utils";
 import { ArrowUpRight, Star, Timer, Wallet } from "lucide-react";
-
-// Mock data for demonstration purposes
-const mockTokens = [
-  {
-    id: "1",
-    address: "9xQsRsR23xhKTGGnzxpuVJQJHyfYQBVno1VcNmrJj6Z",
-    name: "TrenchFighter",
-    symbol: "TFIGHT",
-    createdAt: new Date().getTime() - 1000 * 60 * 10, // 10 minutes ago
-    creator: "AArPXm8JatJiuyEffuC1un2Sc835SULa4uQqDcaGpAjV",
-    isCreatorWatched: true,
-    trades: 18,
-    topTradersBuying: 2,
-  },
-  {
-    id: "2",
-    address: "2YsVJJSAGpWTx5wqETBGKvVeGYQxjEZUhpgUfPK91zj9",
-    name: "SnipeToken",
-    symbol: "SNIPE",
-    createdAt: new Date().getTime() - 1000 * 60 * 25, // 25 minutes ago
-    creator: "BQrPXm8JatJiuyEffuC1un2Sc835SULa4uQqDcaGpAjV",
-    isCreatorWatched: false,
-    trades: 54,
-    topTradersBuying: 0,
-  },
-  {
-    id: "3",
-    address: "7zQsRsR23xhKTGGnzxpuVJQJHyfYQBVno1VcNmrJj6Z",
-    name: "PumpDetector",
-    symbol: "PUMP",
-    createdAt: new Date().getTime() - 1000 * 60 * 42, // 42 minutes ago
-    creator: "CRrPXm8JatJiuyEffuC1un2Sc835SULa4uQqDcaGpAjV",
-    isCreatorWatched: true,
-    trades: 31,
-    topTradersBuying: 3,
-  },
-  {
-    id: "4",
-    address: "5YsVJJSAGpWTx5wqETBGKvVeGYQxjEZUhpgUfPK91zj9",
-    name: "AlphaFinder",
-    symbol: "ALPHA",
-    createdAt: new Date().getTime() - 1000 * 60 * 65, // 65 minutes ago
-    creator: "DRrPXm8JatJiuyEffuC1un2Sc835SULa4uQqDcaGpAjV",
-    isCreatorWatched: false,
-    trades: 24,
-    topTradersBuying: 1,
-  },
-  {
-    id: "5",
-    address: "6zQsRsR23xhKTGGnzxpuVJQJHyfYQBVno1VcNmrJj6Z",
-    name: "GemHunter",
-    symbol: "GEM",
-    createdAt: new Date().getTime() - 1000 * 60 * 85, // 85 minutes ago
-    creator: "ERrPXm8JatJiuyEffuC1un2Sc835SULa4uQqDcaGpAjV",
-    isCreatorWatched: false,
-    trades: 42,
-    topTradersBuying: 0,
-  },
-];
+import socketService, { Token } from "@/services/socketService";
 
 export function TokenAlerts() {
-  const [tokens, setTokens] = useState(mockTokens);
+  const [tokens, setTokens] = useState<Token[]>([]);
   const [currentTime, setCurrentTime] = useState(new Date().getTime());
+
+  // Connect to socket service when component mounts
+  useEffect(() => {
+    // Initial data
+    setTokens(socketService.getTokens());
+    
+    // Listen for updates
+    const handleTokensUpdate = (newTokens: Token[]) => {
+      setTokens(newTokens);
+    };
+    
+    socketService.addEventListener("tokensUpdate", handleTokensUpdate);
+    
+    // Clean up
+    return () => {
+      socketService.removeEventListener("tokensUpdate", handleTokensUpdate);
+    };
+  }, []);
 
   // Update current time every second to refresh relative timestamps
   useEffect(() => {
@@ -88,9 +48,15 @@ export function TokenAlerts() {
       <CardContent>
         <ScrollArea className="h-[320px] pr-4">
           <div className="space-y-4">
-            {tokens.map((token) => (
-              <TokenCard key={token.id} token={token} currentTime={currentTime} />
-            ))}
+            {tokens.length > 0 ? (
+              tokens.map((token) => (
+                <TokenCard key={token.id} token={token} currentTime={currentTime} />
+              ))
+            ) : (
+              <div className="text-center py-8 text-muted-foreground">
+                Waiting for new token launches...
+              </div>
+            )}
           </div>
         </ScrollArea>
       </CardContent>
@@ -99,17 +65,7 @@ export function TokenAlerts() {
 }
 
 interface TokenCardProps {
-  token: {
-    id: string;
-    address: string;
-    name: string;
-    symbol: string;
-    createdAt: number;
-    creator: string;
-    isCreatorWatched: boolean;
-    trades: number;
-    topTradersBuying: number;
-  };
+  token: Token;
   currentTime: number;
 }
 
