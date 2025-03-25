@@ -4,7 +4,7 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { ScrollArea } from "@/components/ui/scroll-area";
 import { cn } from "@/lib/utils";
-import { ArrowUpRight, Star, Timer, Wallet } from "lucide-react";
+import { ArrowUpRight, Star, Timer, Wallet, TrendingUp } from "lucide-react";
 import socketService, { Token } from "@/services/socketService";
 
 export function TokenAlerts() {
@@ -80,7 +80,7 @@ function TokenCard({ token, currentTime }: TokenCardProps) {
     )}>
       <div className="flex items-start justify-between">
         <div>
-          <div className="flex items-center gap-2">
+          <div className="flex items-center gap-2 flex-wrap">
             <h3 className="font-medium">{token.name} ({token.symbol})</h3>
             {token.isCreatorWatched && (
               <Badge variant="secondary" className="text-xs font-normal flex items-center gap-1">
@@ -88,12 +88,17 @@ function TokenCard({ token, currentTime }: TokenCardProps) {
               </Badge>
             )}
             {token.topTradersBuying > 0 && (
-              <Badge variant="secondary" className="bg-success/20 text-success text-xs font-normal flex items-center gap-1">
+              <Badge variant="success" className="text-xs font-normal flex items-center gap-1">
                 <Wallet className="h-3 w-3" /> {token.topTradersBuying} Top Traders
               </Badge>
             )}
+            {token.marketCapSol && (
+              <Badge variant="outline" className="text-xs font-normal flex items-center gap-1">
+                <TrendingUp className="h-3 w-3" /> {token.marketCapSol.toFixed(2)} SOL
+              </Badge>
+            )}
           </div>
-          <div className="mt-1 flex items-center text-xs text-muted-foreground">
+          <div className="mt-1 flex items-center text-xs text-muted-foreground flex-wrap">
             <span className="inline-flex items-center gap-1">
               <Timer className="h-3 w-3" /> {timeAgo}
             </span>

@@ -3,7 +3,7 @@ import React, { useEffect } from "react";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { ScrollArea } from "@/components/ui/scroll-area";
-import { ArrowUpRight, ArrowUp, ArrowDown } from "lucide-react";
+import { ArrowUpRight, ArrowUp, ArrowDown, ExternalLink } from "lucide-react";
 import { cn } from "@/lib/utils";
 import socketService, { Trade } from "@/services/socketService";
 
@@ -38,7 +38,7 @@ export function WalletActivity() {
   }, []);
 
   return (
-    <Card className="col-span-1 md:col-span-2 lg:col-span-2 token-card animate-fade-in">
+    <Card className="col-span-1 md:col-span-2 lg:col-span-1 token-card animate-fade-in">
       <CardHeader className="flex flex-row items-center justify-between pb-2">
         <CardTitle className="text-xl font-semibold">Top Wallet Activity</CardTitle>
         <Badge variant="outline" className="font-normal">
@@ -86,19 +86,15 @@ function TradeCard({ trade, currentTime }: TradeCardProps) {
           <div className="flex items-center gap-2">
             <h3 className="font-medium">{trade.walletName || "Top Wallet"}</h3>
             <Badge 
-              variant="secondary" 
-              className={cn(
-                "text-xs font-normal flex items-center gap-1",
-                trade.action === "buy" && "bg-success/20 text-success",
-                trade.action === "sell" && "bg-destructive/20 text-destructive"
-              )}
+              variant={trade.action === "buy" ? "success" : "destructive"}
+              className="text-xs font-normal flex items-center gap-1"
             >
               {trade.action === "buy" && <ArrowUp className="h-3 w-3" />}
               {trade.action === "sell" && <ArrowDown className="h-3 w-3" />}
               {trade.action === "buy" ? "Bought" : "Sold"} {trade.tokenName}
             </Badge>
           </div>
-          <div className="mt-1 flex items-center text-xs text-muted-foreground">
+          <div className="mt-1 flex items-center text-xs text-muted-foreground flex-wrap">
             <span>{truncatedWallet}</span>
             <span className="mx-2">•</span>
             <span>{formatNumber(trade.amount)} {trade.tokenSymbol}</span>
@@ -107,6 +103,19 @@ function TradeCard({ trade, currentTime }: TradeCardProps) {
             <span className="mx-2">•</span>
             <span>{timeAgo}</span>
           </div>
+          {trade.signature && (
+            <div className="mt-1 flex items-center text-xs">
+              <a 
+                href={`https://solscan.io/tx/${trade.signature}`}
+                target="_blank" 
+                rel="noopener noreferrer"
+                className="text-primary flex items-center hover:underline"
+              >
+                <ExternalLink className="h-3 w-3 mr-1" />
+                View Transaction
+              </a>
+            </div>
+          )}
         </div>
         <a href={`#/wallet/${trade.wallet}`} className="rounded-full p-1.5 hover:bg-background transition-colors">
           <ArrowUpRight className="h-4 w-4 text-muted-foreground" />
