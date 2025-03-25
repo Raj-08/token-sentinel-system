@@ -1,4 +1,3 @@
-
 import React from "react";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
@@ -14,7 +13,7 @@ const mockAlerts = [
     title: "Top Trader Buy",
     description: "Alpha Whale bought 2.5M TFIGHT",
     timestamp: new Date().getTime() - 1000 * 60 * 2, // 2 minutes ago
-    priority: "high",
+    priority: "high" as const,
   },
   {
     id: "2",
@@ -22,7 +21,7 @@ const mockAlerts = [
     title: "New Token Launch",
     description: "TrenchFighter (TFIGHT) launched by watched creator",
     timestamp: new Date().getTime() - 1000 * 60 * 10, // 10 minutes ago
-    priority: "medium",
+    priority: "medium" as const,
   },
   {
     id: "3",
@@ -30,7 +29,7 @@ const mockAlerts = [
     title: "Wallet Movement",
     description: "Smart Money wallet active after 2 weeks",
     timestamp: new Date().getTime() - 1000 * 60 * 15, // 15 minutes ago
-    priority: "medium",
+    priority: "medium" as const,
   },
   {
     id: "4",
@@ -38,7 +37,7 @@ const mockAlerts = [
     title: "Top Trader Buy",
     description: "Blue Chip Investor bought 950K ALPHA",
     timestamp: new Date().getTime() - 1000 * 60 * 23, // 23 minutes ago
-    priority: "high",
+    priority: "high" as const,
   },
   {
     id: "5",
@@ -46,7 +45,7 @@ const mockAlerts = [
     title: "Volume Spike",
     description: "PUMP volume increased 320% in 5 minutes",
     timestamp: new Date().getTime() - 1000 * 60 * 28, // 28 minutes ago
-    priority: "medium",
+    priority: "medium" as const,
   },
   {
     id: "6",
@@ -54,7 +53,7 @@ const mockAlerts = [
     title: "New Token Launch",
     description: "SnipeToken (SNIPE) launched",
     timestamp: new Date().getTime() - 1000 * 60 * 35, // 35 minutes ago
-    priority: "low",
+    priority: "low" as const,
   },
 ];
 

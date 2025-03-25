@@ -1,4 +1,3 @@
-
 import React from "react";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
@@ -14,7 +13,7 @@ const mockTrades = [
     walletName: "Alpha Whale",
     tokenName: "TrenchFighter",
     tokenSymbol: "TFIGHT",
-    action: "buy",
+    action: "buy" as const,
     amount: 2500000,
     timestamp: new Date().getTime() - 1000 * 60 * 5, // 5 minutes ago
     value: 4280,
@@ -25,7 +24,7 @@ const mockTrades = [
     walletName: "DeFi Degen",
     tokenName: "SnipeToken",
     tokenSymbol: "SNIPE",
-    action: "sell",
+    action: "sell" as const,
     amount: 1200000,
     timestamp: new Date().getTime() - 1000 * 60 * 12, // 12 minutes ago
     value: 1980,
@@ -36,7 +35,7 @@ const mockTrades = [
     walletName: "Smart Money",
     tokenName: "PumpDetector",
     tokenSymbol: "PUMP",
-    action: "buy",
+    action: "buy" as const,
     amount: 4800000,
     timestamp: new Date().getTime() - 1000 * 60 * 18, // 18 minutes ago
     value: 7450,
@@ -47,7 +46,7 @@ const mockTrades = [
     walletName: "Blue Chip Investor",
     tokenName: "AlphaFinder",
     tokenSymbol: "ALPHA",
-    action: "buy",
+    action: "buy" as const,
     amount: 950000,
     timestamp: new Date().getTime() - 1000 * 60 * 23, // 23 minutes ago
     value: 1820,
@@ -58,7 +57,7 @@ const mockTrades = [
     walletName: "Early Adopter",
     tokenName: "GemHunter",
     tokenSymbol: "GEM",
-    action: "sell",
+    action: "sell" as const,
     amount: 3200000,
     timestamp: new Date().getTime() - 1000 * 60 * 35, // 35 minutes ago
     value: 5340,
