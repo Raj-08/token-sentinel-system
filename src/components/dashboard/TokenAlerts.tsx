@@ -4,7 +4,7 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { ScrollArea } from "@/components/ui/scroll-area";
 import { cn } from "@/lib/utils";
-import { ArrowUpRight, Star, Timer, Wallet, TrendingUp, DollarSign, Coins, ExternalLink } from "lucide-react";
+import { ArrowUpRight, Star, Timer, Wallet, TrendingUp } from "lucide-react";
 import socketService, { Token } from "@/services/socketService";
 
 export function TokenAlerts() {
@@ -73,19 +73,13 @@ function TokenCard({ token, currentTime }: TokenCardProps) {
   const timeAgo = getTimeAgo(token.createdAt, currentTime);
   const truncatedAddress = `${token.address.substring(0, 4)}...${token.address.substring(token.address.length - 4)}`;
   
-  // Format number values for display
-  const formatValue = (value?: number): string => {
-    if (value === undefined) return "N/A";
-    return value.toLocaleString(undefined, { maximumFractionDigits: 2 });
-  };
-  
   return (
     <div className={cn(
       "group relative rounded-lg border p-3 transition-all hover:bg-accent",
       token.topTradersBuying > 0 && "ring-1 ring-primary/20"
     )}>
       <div className="flex items-start justify-between">
-        <div className="w-full">
+        <div>
           <div className="flex items-center gap-2 flex-wrap">
             <h3 className="font-medium">{token.name} ({token.symbol})</h3>
             {token.isCreatorWatched && (
@@ -113,68 +107,8 @@ function TokenCard({ token, currentTime }: TokenCardProps) {
             <span className="mx-2">•</span>
             <span>{token.trades} trades</span>
           </div>
-          
-          {/* Additional token details */}
-          <div className="mt-2 grid grid-cols-1 sm:grid-cols-2 gap-x-4 gap-y-1 text-xs pt-1 border-t">
-            {token.initialBuy && (
-              <div className="flex items-center gap-1 text-muted-foreground">
-                <Coins className="h-3 w-3" /> Initial Buy: {formatValue(token.initialBuy)}
-              </div>
-            )}
-            {token.solAmount && (
-              <div className="flex items-center gap-1 text-muted-foreground">
-                <DollarSign className="h-3 w-3" /> Initial SOL: {formatValue(token.solAmount)}
-              </div>
-            )}
-            {token.vTokensInBondingCurve && (
-              <div className="flex items-center gap-1 text-muted-foreground">
-                <Coins className="h-3 w-3" /> Tokens in Pool: {formatValue(token.vTokensInBondingCurve)}
-              </div>
-            )}
-            {token.vSolInBondingCurve && (
-              <div className="flex items-center gap-1 text-muted-foreground">
-                <DollarSign className="h-3 w-3" /> SOL in Pool: {formatValue(token.vSolInBondingCurve)}
-              </div>
-            )}
-          </div>
-          
-          {/* Links */}
-          <div className="mt-2 flex flex-wrap gap-3">
-            {token.uri && (
-              <a 
-                href={token.uri} 
-                target="_blank" 
-                rel="noopener noreferrer"
-                className="text-primary flex items-center text-xs hover:underline"
-              >
-                <ExternalLink className="h-3 w-3 mr-1" />
-                Metadata
-              </a>
-            )}
-            {token.bondingCurveKey && (
-              <a 
-                href={`https://solscan.io/account/${token.bondingCurveKey}`} 
-                target="_blank" 
-                rel="noopener noreferrer"
-                className="text-primary flex items-center text-xs hover:underline"
-              >
-                <ExternalLink className="h-3 w-3 mr-1" />
-                Pool
-              </a>
-            )}
-            <a 
-              href={`https://solscan.io/token/${token.address}`} 
-              target="_blank" 
-              rel="noopener noreferrer"
-              className="text-primary flex items-center text-xs hover:underline"
-            >
-              <ExternalLink className="h-3 w-3 mr-1" />
-              Token
-            </a>
-          </div>
         </div>
-        
-        <a href={`#/token/${token.address}`} className="rounded-full p-1.5 hover:bg-background transition-colors flex-shrink-0">
+        <a href={`#/token/${token.address}`} className="rounded-full p-1.5 hover:bg-background transition-colors">
           <ArrowUpRight className="h-4 w-4 text-muted-foreground" />
         </a>
       </div>
