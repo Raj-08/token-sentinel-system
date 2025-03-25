@@ -7,6 +7,7 @@ import Index from "./pages/Index";
 import NotFound from "./pages/NotFound";
 import { TokenDetail } from "./components/tokens/TokenDetail";
 import { CreateToken } from "./components/tokens/CreateToken";
+import { WalletTrackerPage } from "./pages/WalletTrackerPage";
 
 const queryClient = new QueryClient();
 
@@ -20,6 +21,7 @@ const App = () => (
           <Route path="/" element={<Index />} />
           <Route path="/token/:address" element={<TokenDetail />} />
           <Route path="/create-token" element={<CreateToken />} />
+          <Route path="/wallet-tracker" element={<WalletTrackerPage />} />
           {/* ADD ALL CUSTOM ROUTES ABOVE THE CATCH-ALL "*" ROUTE */}
           <Route path="*" element={<NotFound />} />
         </Routes>

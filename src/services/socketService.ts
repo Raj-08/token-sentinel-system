@@ -114,6 +114,11 @@ class SocketService {
   private tokens: Token[] = [];
   private trades: Trade[] = [];
   private topWallets: string[] = topWalletsExample;
+  private trackedWallets: Map<string, {
+    lastCheckedTimestamp: number;
+    displayName: string;
+  }> = new Map();
+  private walletPollingInterval: number | null = null;
 
   constructor() {
     this.initializeSDK();
@@ -712,6 +717,220 @@ class SocketService {
       });
       throw error;
     }
+  }
+
+  trackWallet(walletAddress: string, displayName: string = "") {
+    const normalizedAddress = walletAddress.trim();
+    
+    // Validate Solana address format
+    try {
+      new PublicKey(normalizedAddress);
+    } catch (error) {
+      toast.error("Invalid wallet address", {
+        description: "Please enter a valid Solana wallet address",
+      });
+      return false;
+    }
+    
+    // Add to tracked wallets if not already there
+    if (!this.trackedWallets.has(normalizedAddress)) {
+      this.trackedWallets.set(normalizedAddress, {
+        lastCheckedTimestamp: Date.now(),
+        displayName: displayName || `Wallet ${normalizedAddress.substring(0, 6)}...`
+      });
+      
+      toast.success("Wallet tracked successfully", {
+        description: `${normalizedAddress.substring(0, 8)}... will be monitored for purchases`,
+      });
+      
+      // Add to top wallets as well
+      this.addWallet(normalizedAddress);
+      
+      // Start polling if this is our first tracked wallet
+      if (this.trackedWallets.size === 1) {
+        this.startWalletPolling();
+      }
+      
+      // Notify listeners with properly formatted wallet objects
+      this.notifyListeners("trackedWalletsUpdate", this.getTrackedWallets());
+      return true;
+    } else {
+      toast.info("Wallet already tracked", {
+        description: `${normalizedAddress.substring(0, 8)}... is already being monitored`,
+      });
+      return false;
+    }
+  }
+  
+  removeTrackedWallet(walletAddress: string) {
+    if (this.trackedWallets.has(walletAddress)) {
+      this.trackedWallets.delete(walletAddress);
+      
+      toast.success("Wallet no longer tracked", {
+        description: `${walletAddress.substring(0, 8)}... has been removed from monitoring`,
+      });
+      
+      // Stop polling if no more wallets to track
+      if (this.trackedWallets.size === 0 && this.walletPollingInterval) {
+        this.stopWalletPolling();
+      }
+      
+      // Notify listeners with properly formatted wallet objects
+      this.notifyListeners("trackedWalletsUpdate", this.getTrackedWallets());
+      return true;
+    }
+    return false;
+  }
+  
+  getTrackedWallets() {
+    // Return the transformed wallet objects directly to match the TrackedWallet interface
+    return Array.from(this.trackedWallets.entries()).map(([address, data]) => ({
+      address,
+      displayName: data.displayName,
+      lastCheckedTimestamp: data.lastCheckedTimestamp
+    }));
+  }
+  
+  private startWalletPolling() {
+    // Check immediately
+    this.checkTrackedWallets();
+    
+    // Then poll every 2 minutes
+    this.walletPollingInterval = window.setInterval(() => {
+      this.checkTrackedWallets();
+    }, 2 * 60 * 1000); // 2 minutes
+  }
+  
+  private stopWalletPolling() {
+    if (this.walletPollingInterval) {
+      clearInterval(this.walletPollingInterval);
+      this.walletPollingInterval = null;
+    }
+  }
+  
+  private async checkTrackedWallets() {
+    if (this.trackedWallets.size === 0) return;
+    
+    for (const [address, data] of this.trackedWallets.entries()) {
+      try {
+        // Get transactions since last check
+        const transactions = await this.fetchRecentTransactions(address, data.lastCheckedTimestamp);
+        
+        // Update last checked timestamp
+        this.trackedWallets.set(address, {
+          ...data,
+          lastCheckedTimestamp: Date.now()
+        });
+        
+        // Process new transactions
+        if (transactions.length > 0) {
+          this.processWalletTransactions(address, data.displayName, transactions);
+        }
+      } catch (error) {
+        console.error(`Error checking wallet ${address}:`, error);
+      }
+    }
+  }
+  
+  private async fetchRecentTransactions(walletAddress: string, sinceTimestamp: number) {
+    try {
+      // If we're in development mode, return simulated transactions
+      if (window.location.hostname === 'localhost') {
+        return this.simulateTransactions(walletAddress);
+      }
+      
+      // Real implementation using Solscan API
+      const response = await fetch(`https://public-api.solscan.io/account/transactions?account=${walletAddress}&limit=10`, {
+        headers: {
+          'accept': 'application/json'
+        }
+      });
+      
+      if (!response.ok) {
+        throw new Error(`Solscan API error: ${response.status}`);
+      }
+      
+      const data = await response.json();
+      
+      // Filter transactions that are newer than the last check time
+      return data.filter((tx: any) => {
+        const txTimestamp = tx.blockTime * 1000; // Convert to milliseconds
+        return txTimestamp > sinceTimestamp;
+      });
+    } catch (error) {
+      console.error("Error fetching transactions:", error);
+      return [];
+    }
+  }
+  
+  private simulateTransactions(walletAddress: string) {
+    // Generate a random number (0-2) of simulated transactions
+    const numTransactions = Math.floor(Math.random() * 3);
+    
+    if (numTransactions === 0) return [];
+    
+    return Array(numTransactions).fill(null).map((_, index) => {
+      const randomTokenIndex = Math.floor(Math.random() * exampleTokens.length);
+      const randomToken = exampleTokens[randomTokenIndex];
+      
+      return {
+        txHash: `simulate_${Math.random().toString(36).substring(2, 15)}`,
+        blockTime: Math.floor(Date.now() / 1000) - (index * 60), // Stagger by a minute
+        status: "Success",
+        tokenTransfers: [{
+          tokenAddress: randomToken.address,
+          tokenAmount: Math.floor(Math.random() * 1000) + 1,
+          tokenSymbol: randomToken.symbol,
+          tokenName: randomToken.name
+        }]
+      };
+    });
+  }
+  
+  private processWalletTransactions(walletAddress: string, displayName: string, transactions: any[]) {
+    // Process each transaction
+    transactions.forEach(tx => {
+      // Focus only on token purchases
+      if (tx.tokenTransfers && tx.tokenTransfers.length > 0) {
+        tx.tokenTransfers.forEach((transfer: any) => {
+          // Create a trade record from the transaction
+          const trade: Trade = {
+            id: this.generateId(),
+            tokenAddress: transfer.tokenAddress || "unknown",
+            traderAddress: walletAddress,
+            type: "buy", // Assume it's a buy
+            amount: transfer.tokenAmount || 0,
+            timestamp: (tx.blockTime * 1000) || Date.now()
+          };
+          
+          // Add to trades
+          this.trades.unshift(trade);
+          
+          // Create alert
+          const alert: Alert = {
+            id: this.generateId(),
+            type: "tracked_wallet_purchase",
+            title: "Tracked Wallet Purchase",
+            description: `${displayName} bought ${transfer.tokenAmount} ${transfer.tokenSymbol || 'tokens'}`,
+            timestamp: Date.now(),
+            priority: "high",
+          };
+          
+          // Add to alerts
+          this.alerts.unshift(alert);
+          
+          // Notify
+          toast.info(`Purchase Alert`, {
+            description: alert.description,
+          });
+          this.playNotificationSound();
+          
+          // Update listeners
+          this.notifyListeners("tradesUpdate", this.trades);
+          this.notifyListeners("alertsUpdate", this.alerts);
+        });
+      }
+    });
   }
 }
 

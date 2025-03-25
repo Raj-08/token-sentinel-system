@@ -1,9 +1,8 @@
-
 import React from "react";
 import { cn } from "@/lib/utils";
 import { Button } from "@/components/ui/button";
 import { ScrollArea } from "@/components/ui/scroll-area";
-import { ChevronLeft, Activity, Wallet, Bell, BarChart3, LineChart, Settings, List } from "lucide-react";
+import { ChevronLeft, Activity, Wallet, Bell, BarChart3, LineChart, Settings, List, Eye } from "lucide-react";
 
 interface SidebarProps {
   open: boolean;
@@ -42,6 +41,7 @@ export function Sidebar({ open, setOpen }: SidebarProps) {
         <nav className="grid gap-1 px-2">
           <NavItem icon={Activity} label="Dashboard" href="/" active={true} expanded={open} />
           <NavItem icon={Wallet} label="Top Wallets" href="/wallets" expanded={open} />
+          <NavItem icon={Eye} label="Wallet Tracker" href="/wallet-tracker" expanded={open} />
           <NavItem icon={List} label="Recent Tokens" href="/tokens" expanded={open} />
           <NavItem icon={Bell} label="Notifications" href="/notifications" expanded={open} badge={3} />
           <NavItem icon={BarChart3} label="Market Data" href="/market" expanded={open} />
